@@ -3,25 +3,24 @@
 #LOAD LIbrary
 library(rgl)
 
-totalFrames <- 20
-dir.create("animation")
-    par3d(windowRect = c(0, 50, 800, 800),
-        userMatrix = rotationMatrix(-30*pi/180, 0, 1, 0.5)
-            %*% par3d("userMatrix"))
-for (frame in 0:totalFrames) {
-rho <- frame*0.01
 box <- data.frame(
     x = c(0.95,0.05,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.05,0.05,0.05,0.95,0.95,0.95,0.05,0.95,0.05,0.05,0.05,0.05,0.05,0.05,0.05),
     y = c(0.95,0.95,0.95,0.95,0.95,0.05,0.95,0.05,0.95,0.95,0.95,0.95,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.95,0.05,0.95),
     z = c(0.95,0.95,0.95,0.05,0.95,0.95,0.05,0.05,0.05,0.05,0.95,0.05,0.95,0.05,0.95,0.95,0.05,0.05,0.05,0.95,0.95,0.95,0.05,0.05)
 )
-plot3d(0.05, 0.05, 0.05,
-    col = "white", 
-    xlab="", ylab="", zlab="", 
-    xlim=c(-0.5,1.5),
-    ylim=c(-0.5,1.5),
-    zlim=c(-0.5,1.5),
-    axes = FALSE)
+dir.create("animation")
+par3d(windowRect = c(0, 50, 800, 800),
+    userMatrix = rotationMatrix(-30*pi/180, 0, 1, 0.5) %*% par3d("userMatrix"))
+totalFrames <- 20
+for (frame in 0:totalFrames) {
+    rho <- frame*0.01
+    plot3d(0.05, 0.05, 0.05,
+        col = "white", 
+        xlab="", ylab="", zlab="", 
+        xlim=c(-0.5,1.5),
+        ylim=c(-0.5,1.5),
+        zlim=c(-0.5,1.5),
+        axes = FALSE)
     segments3d(box$x, box$y, box$z, col = "black")
     for (i in 1:9) {
             a <- i*0.1
@@ -46,6 +45,6 @@ plot3d(0.05, 0.05, 0.05,
     rgl.snapshot(filename=paste("animation/ripple-",sprintf("%03d", frame), ".png", sep=""))
     system(paste("convert -crop 400x400+200+175 +repage animation/ripple-",sprintf("%03d", frame), ".png animation/ripple-",sprintf("%03d", frame), ".png", sep=""))
     file.copy(paste("animation/ripple-",sprintf("%03d", frame),".png", sep=""), paste("animation/ripple-", sprintf("%03d", newFrame), ".png", sep=""))
-    system(paste("convert -delay 1 animation/*.png animation/ripple.gif", sep=""))
     clear3d()
 }
+system(paste("convert -delay 1 animation/*.png animation/ripple.gif", sep=""))

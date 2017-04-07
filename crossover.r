@@ -27,8 +27,6 @@ for (frame in 0:totalFrames) {
         lines3d(t(c3d_trans$vb)[c3d$ib[,i],])
         lines3d(t(c3d$vb)[c3d$ib[,i],])
     }
-    #shade3d(c3d,col="red")
-    #shade3d(c3d_trans,col="blue")
     for (i in 1:4) {
         a <- i*0.1
         for (j in 1:4) {
