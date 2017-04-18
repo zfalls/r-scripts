@@ -245,7 +245,7 @@ cat(paste("Energy minimum for 16 FU TiO2 =", emin), file = "summary", sep ="\n",
 cat("\n", file = "summary", append = TRUE)
 cat(paste("Number of runs =", nRuns), file = "summary", sep = "\n", append = TRUE)
 cat(paste("Total of Structures =", total), file = "summary", sep = "\n", append = TRUE)
-cat(paste("Percent of Runs Completed =", finished/total, "%"), file = "summary", sep = "\n", append = TRUE)
+cat(paste("Percent of Runs Completed =", finished/nRuns*100, "%"), file = "summary", sep = "\n", append = TRUE)
 cat("\n", file = "summary", append = TRUE)
 cat(paste("Halflife =", hf), file = "summary", sep = "\n", append = TRUE)
 cat(paste("Finish by structure =", est_done), file = "summary", sep = "\n", append = TRUE)
