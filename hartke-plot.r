@@ -3,13 +3,30 @@
 #Load Library
 library(ggplot2)
 
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("At least one argument must be supplied (tio2 or srtio3)", call.=FALSE)
+}
+if (args[1] != "tio2" & args[1] != "srtio3") {
+  stop("Invalid argument. Must be tio2 or srtio3", call.=FALSE)
+}
 files <- list.files(pattern = "\\.(txt)$") 
 
-#Set min energy for TiO2
-etol <- 1e-3
-tio2_energy <- -39.80035761
-tio2_ave_energy <- -622.52807
-emin <- tio2_energy * 16.0
+etol <- 1e-2
+# Set min energy for TiO2
+if (args[1] == "tio2") {
+    energy <- -39.80035761
+    ave_energy <- -622.52807
+    emin <- energy * 16.0
+} else if (args[1] == "srtio3") {
+# OR
+# Set min energy for TiO2
+    energy <- -149.73062054
+    ave_energy <- -1484.52192
+    emin <- energy * 10.0
+} else {
+  stop("Invalid argument. Must be tio2 or srtio3", call.=FALSE)
+}
 
 xs <- data.frame()
 ys <- data.frame()
@@ -38,7 +55,7 @@ for (file in files) {
     
     for (i in 1:nrow(run)) {
         if (run$gen[i] != 1) {
-#            if (run$status[i] != "Killed" && abs(emin) - abs(run$enthalpy[i]) > -etol && abs(run$enthalpy[i]) > 10) {
+#            if (run$status[i] != "Killed" & abs(emin) - abs(run$enthalpy[i]) > -etol & abs(run$enthalpy[i]) > 10) {
                 x <- c(x, run$index[i])
                 y <- c(y, run$enthalpy[i])
 #            }
@@ -78,11 +95,11 @@ for (file in files) {
     }
 
     # Plot each run summary
-    #df <- data.frame(x=x, y=y, f=f)
-    #ggplot(data = df, aes(x = x, y = f)) +
-    #    geom_line() +
-    #    theme_bw()
-    #ggsave(paste("run", nRuns,"-results.png", sep = ""))
+#    df <- data.frame(x=x, y=y, f=f)
+#    ggplot(data = df, aes(x = x, y = f)) +
+#        geom_line() +
+#        theme_bw()
+#    ggsave(paste("run", nRuns,"-results.png", sep = ""))
 }
 
 indfs <- c()
@@ -115,19 +132,45 @@ for (point in 1:nrow(xs)) {
     index <- index + 1
 }
 
-e_0 <- tio2_ave_energy - emin
+e_0 <- ave_energy - emin
 
 hartke <- data.frame(indfs, minfs, maxfs, avefs)
 
+#Average Best fit Function test
+#favg <- function(x) {
+#    e_0 * (exp(-0.01*x^0.7)) + emin
+#}
+
+# Plot average
+#df <- data.frame(x=xs, y=ys, f=fs)
+#avg <- ggplot(data = hartke) +
+#    geom_line(data = hartke, aes(x = indfs, y = minfs, color = "Best-best structure"), size = 1) +
+#    geom_line(data = hartke, aes(x = indfs, y = maxfs, color = "Worst-best structure"), size = 1) +
+#    geom_line(data = hartke, aes(x = indfs, y = avefs, color = "Average-best structure"), size = 1) +
+#    stat_function(data = hartke, fun = favg, aes(x = indfs, y = avefs)) +
+#    theme_bw()
+#ggsave(paste("average-results.png", sep = ""))
+
+if (args[1] == "tio2") {
+    coeffs <- c(-1,1)
+} else if (args[1] == "srtio3") {
+    coeffs <- c(-0.01,0.7)
+}
+
 fit <- nls(formula = avefs ~ e_0 * (exp(a*indfs^b)) + emin,
         data = hartke,
-        start = list(a=-1, b=1))
+        start = list(a=coeffs[1], b=coeffs[2])
+)
 coeffs <- coef(fit)
 
 #Using best fit function coefficients
 #Calculate Halflife
 f_hf <- function(x) {
     coeffs[1] * x ^ coeffs[2] - log(1.0/2.0)
+}
+
+if (emin > min(minfs)) {
+    print("WARNING: Emin > found Emin")
 }
 
 tol <- 1e-10
@@ -151,10 +194,10 @@ hfenergy <- e_0 * (exp(coeffs[1] * hf ^ coeffs[2])) + emin
 
 #Estimated finish value for runs that did not complete
 f_est <- function(x) {
-    e_0 * (exp(coeffs[1] * x ^ coeffs[2])) - cutoff
+    e_0 * (exp(coeffs[1] * x ^ coeffs[2]))
 }
 
-guess <- 10
+guess <- 500
 diff <- 1e-5
 cutoff <- 0.01
 x <- guess
@@ -174,6 +217,7 @@ while (abs(val) > tol) {
     }
 }
 est <- x
+
 for (i in length(firstdone)) {
     if (firstdone[i] == 0)
         firstdone[i] = est
@@ -193,7 +237,7 @@ hartkeplot <- ggplot(hartke) +
         size = 1,
         method = "nls",
         formula = 'y ~ e_0 * (exp(a*x^b)) + emin',
-        method.args = list(start=list(a=-1,b=1)),
+        method.args = list(start=list(a=coeffs[1],b=coeffs[2])),
         se=FALSE
     ) +
     geom_point(x = hf, y = hfenergy, size = 7, aes(shape = "Halflife"), show.legend = TRUE) +
@@ -242,6 +286,7 @@ total <- killed + duplicate + supercell + optimized
 
 cat(paste("Energy tolerance =", etol), file = "summary", sep = "\n")
 cat(paste("Energy minimum for 16 FU TiO2 =", emin), file = "summary", sep ="\n", append = TRUE)
+cat(paste("Coefficients: a =", coeffs[1], "b =", coeffs[2]), file = "summary", sep = "\n")
 cat("\n", file = "summary", append = TRUE)
 cat(paste("Number of runs =", nRuns), file = "summary", sep = "\n", append = TRUE)
 cat(paste("Total of Structures =", total), file = "summary", sep = "\n", append = TRUE)
