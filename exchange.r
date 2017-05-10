@@ -48,10 +48,11 @@ for (frame in 0:totalFrames) {
         }
     }
     newFrame <- totalFrames*2 - frame
-    rgl.snapshot(filename=paste("exchange/exchange-",sprintf("%03d", frame), ".png", sep=""))
-    system(paste("convert -crop 400x400+200+175 +repage exchange/exchange-",sprintf("%03d", frame), ".png exchange/exchange-",sprintf("%03d", frame), ".png", sep=""))
+    rgl.postscript(filename=paste("exchange/exchange-",sprintf("%03d",frame), ".pdf", sep=""), fmt="pdf")
+    system(paste("convert -crop 400x400+200+175 +repage -sharpen 0x1.0 -quality 100 -density 300 exchange/exchange-",sprintf("%03d", frame), ".pdf exchange/exchange-",sprintf("%03d", frame), ".pdf", sep=""))
+    system(paste("convert -sharpen 0x1.0 -quality 100 exchange/exchange-",sprintf("%03d", frame), ".pdf exchange/exchange-",sprintf("%03d", frame), ".png", sep=""))
     if (frame != newFrame)    
-        file.copy(paste("exchange/exchange-",sprintf("%03d", frame),".png", sep=""), paste("exchange/exchange-", sprintf("%03d", newFrame), ".png", sep=""))
+        file.copy(paste("exchange/exchange-",sprintf("%03d", frame),".png", sep=""), paste("exchange/exchange-", sprintf("%03d", newFrame), ".png", sep=""), overwrite = TRUE)
     clear3d()
 }
 system(paste("convert -delay 1 exchange/*.png exchange/exchange.gif", sep=""))

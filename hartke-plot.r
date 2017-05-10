@@ -2,6 +2,7 @@
 
 #Load Library
 library(ggplot2)
+library(MASS)
 
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
@@ -12,18 +13,19 @@ if (args[1] != "tio2" & args[1] != "srtio3") {
 }
 files <- list.files(pattern = "\\.(txt)$") 
 
-etol <- 1e-2
 # Set min energy for TiO2
 if (args[1] == "tio2") {
     energy <- -39.80035761
     ave_energy <- -622.52807
     emin <- energy * 16.0
+    etol <- 1e-2
 } else if (args[1] == "srtio3") {
 # OR
 # Set min energy for TiO2
-    energy <- -149.73062054
+    energy <- -150.03120626
     ave_energy <- -1484.52192
     emin <- energy * 10.0
+    etol <- 1.0
 } else {
   stop("Invalid argument. Must be tio2 or srtio3", call.=FALSE)
 }
@@ -159,7 +161,8 @@ if (args[1] == "tio2") {
 
 fit <- nls(formula = avefs ~ e_0 * (exp(a*indfs^b)) + emin,
         data = hartke,
-        start = list(a=coeffs[1], b=coeffs[2])
+        start = list(a=coeffs[1], b=coeffs[2]),
+        nls.control(maxiter = 5000),
 )
 coeffs <- coef(fit)
 
@@ -218,13 +221,19 @@ while (abs(val) > tol) {
 }
 est <- x
 
-for (i in length(firstdone)) {
-    if (firstdone[i] == 0)
-        firstdone[i] = est
+firstdone_val <- 10000
+for (i in 1:length(firstdone)) {
+#    if (firstdone[i] == 0) {
+#        firstdone[i] = est
+#    }
+    if (firstdone[i] < firstdone_val && firstdone[i] != 0) {
+        firstdone_val <- firstdone[i]
+    }    
 }
 
 est_done <- mean(firstdone)
-
+std_dev <- sd(firstdone)
+err_mean <- std_dev / sqrt(std_dev)
 
 #Plot the Hartke Plot
 hartkeplot <- ggplot(hartke) +
@@ -242,10 +251,10 @@ hartkeplot <- ggplot(hartke) +
     ) +
     geom_point(x = hf, y = hfenergy, size = 7, aes(shape = "Halflife"), show.legend = TRUE) +
     scale_colour_manual(
-        values=c("Best-best structure" = "green", 
-            "Worst-best structure" = "blue", 
-            "Average-best structure" = "red",
-            "Fitted exponential" = "black"),
+        values=c("Best-best structure" = "#FF9600", 
+            "Worst-best structure" = "#005199", 
+            "Average-best structure" = "#686868",
+            "Fitted exponential" = "#000000"),
             breaks=c("Best-best structure", 
             "Worst-best structure", 
             "Average-best structure",
@@ -260,7 +269,7 @@ hartkeplot <- ggplot(hartke) +
     ) +
     theme_bw() +
     theme(
-        legend.position=c(0.8,0.8),
+        legend.position=c(0.66,0.7),
         legend.title=element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -274,26 +283,41 @@ hartkeplot <- ggplot(hartke) +
         axis.title = element_text(colour = "black", size=16),
         axis.text = element_text(colour = "black", size=14),
     ) +
-    labs(x="Structure number", y="Enthalpy (eV)") +
-    scale_x_continuous(limits = c(0,NA), expand = c(0, 0)) +
-    scale_y_continuous(limits = c(NA,NA), expand = c(0.01, 0.01)) +
+    labs(x="Structure number", y="Enthalpy (eV)")
 
-ggsave("hartke-plot.pdf", dpi=300, width = 20, height = 15, units = "cm")
-ggsave("hartke-plot.eps", dpi=300, width = 20, height = 15, units = "cm")
-ggsave("hartke-plot.png", dpi=300, width = 20, height = 15, units = "cm")
+if (args[1] == "tio2") {
+    hartkeplot <- hartkeplot +
+        scale_x_continuous(limits = c(0,NA), expand = c(0, 0)) +
+        scale_y_continuous(limits = c(emin-1,-613.0), expand = c(0, 0))
+} else if (args[1] == "srtio3") {
+    hartkeplot <- hartkeplot +
+        scale_x_continuous(limits = c(0, NA), expand = c(0, 0)) +
+        scale_y_continuous(limits = c(emin-1, -1475.0), expand = c(0, 0))
+}
+
+ggsave("hartke-plot.pdf", dpi=300, width = 12, height = 10, units = "cm")
+ggsave("hartke-plot.eps", dpi=300, width = 12, height = 10, units = "cm")
+ggsave("hartke-plot.png", dpi=300, width = 12, height = 10, units = "cm")
 
 total <- killed + duplicate + supercell + optimized
 
 cat(paste("Energy tolerance =", etol), file = "summary", sep = "\n")
-cat(paste("Energy minimum for 16 FU TiO2 =", emin), file = "summary", sep ="\n", append = TRUE)
+cat(paste("Energy minimum =", emin), file = "summary", sep ="\n", append = TRUE)
 cat(paste("Coefficients: a =", coeffs[1], "b =", coeffs[2]), file = "summary", sep = "\n")
 cat("\n", file = "summary", append = TRUE)
 cat(paste("Number of runs =", nRuns), file = "summary", sep = "\n", append = TRUE)
+cat(paste("Number of runs completed =", finished), file = "summary", sep = "\n", append = TRUE)
 cat(paste("Total of Structures =", total), file = "summary", sep = "\n", append = TRUE)
 cat(paste("Percent of Runs Completed =", finished/nRuns*100, "%"), file = "summary", sep = "\n", append = TRUE)
 cat("\n", file = "summary", append = TRUE)
 cat(paste("Halflife =", hf), file = "summary", sep = "\n", append = TRUE)
-cat(paste("Finish by structure =", est_done), file = "summary", sep = "\n", append = TRUE)
+cat("\n", file = "summary", append = TRUE)
+cat(paste("Calc. Finish by structure =", est), file = "summary", sep = "\n", append = TRUE)
+cat(paste("Avg. Finish by structure =", est_done), file = "summary", sep = "\n", append = TRUE)
+cat(paste("Std. Dev. =", std_dev), file = "summary", sep = "\n", append = TRUE)
+cat(paste("Error =", err_mean), file = "summary", sep = "\n", append = TRUE)
+cat("\n", file = "summary", append = TRUE)
+cat(paste("Best Finish by structure =", firstdone_val), file = "summary", sep = "\n", append = TRUE)
 cat("\n", file = "summary", append = TRUE)
 cat(paste("Number of structures killed =", killed), file = "summary", sep = "\n", append = TRUE)
 cat(paste("Number of duplicate structures =", duplicate), file = "summary", sep = "\n", append = TRUE)

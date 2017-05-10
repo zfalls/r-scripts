@@ -3,11 +3,25 @@
 #Load Library
 library(ggplot2)
 
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("At least one argument must be supplied (tio2 or srtio3)", call.=FALSE)
+}
+if (args[1] != "tio2" & args[1] != "srtio3") {
+  stop("Invalid argument. Must be tio2 or srtio3", call.=FALSE)
+}
+
 files <- list.files(pattern = "\\.(txt)$")
 
-tio2_energy <- -39.80035761
-emin <- tio2_energy * 16.0
-etol <- 1e-3
+if (args[1] == "tio2") {
+    energy <- -39.80035761
+    emin <- energy * 16.0
+    etol <- 1e-3
+} else if (args[1] == "srtio3") {
+    energy <- -150.03120626
+    emin <- energy * 10.0
+    etol <- 1 
+}
 
 enthalpy <- c()
 genmin <- 0
@@ -27,14 +41,33 @@ for (file in files) {
     }
 }
 
-print(paste(genmin, "Of", total, "Total Structures were Minimum"))
-print(paste(genmin/total*100.0,"%", sep=""))
 gen <- data.frame(enthalpy)
-randomgen <- ggplot(gen, aes(x=enthalpy)) +
-    geom_histogram(binwidth=0.1, data=subset(gen, enthalpy<=emin), aes(fill="Rutile"), color = "black") +
-    geom_histogram(binwidth=0.1, data=subset(gen, enthalpy>emin), aes(fill="Other"), color = "black") +
-    scale_x_continuous(limits = c(emin-1,NA), expand = c(0, 0)) +
-    scale_y_continuous(limits = c(0,NA), expand = c(0, 0)) +
+
+if (args[1] == "tio2") {
+    randomgen <- ggplot(gen, aes(x=enthalpy)) +
+        geom_histogram(binwidth=0.1, 
+            data=subset(gen, enthalpy<=emin), 
+            aes(fill="Rutile"), 
+            #size = 0.2, 
+            #color = "black"
+        )
+} else if (args[1] == "srtio3") {
+    randomgen <- ggplot(gen, aes(x=enthalpy)) +
+        geom_histogram(binwidth=0.1, 
+            data=subset(gen, (emin-enthalpy)<=etol), 
+            aes(fill="Perovskite"), 
+            #size = 0.2, 
+            #color = "black"
+        )
+}
+
+randomgen <- randomgen +
+    geom_histogram(binwidth=0.1, 
+        data=subset(gen, enthalpy>emin), 
+        aes(fill="Other"), 
+        #size = 0.2, 
+        #color = "black"
+    ) +
     theme_bw() +
     theme(
         panel.grid.major = element_blank(),
@@ -44,19 +77,38 @@ randomgen <- ggplot(gen, aes(x=enthalpy)) +
                                   colour = "black"),
         axis.title = element_text(colour = "black", size=16),
         axis.text = element_text(colour = "black", size=14),
-        legend.position=c(0.1,0.9),
+        legend.position=c(0.8,0.2),
         legend.title=element_blank(),
         legend.text = element_text(colour = "black", size=14),
         legend.background = element_rect(fill = "white",
                                   size=0.5, linetype = "solid",
                                   colour = "black"),
     ) +
-    scale_fill_manual(values=c("Rutile" = "red", "Other" = "blue"),
-        breaks=c("Rutile")
-    ) +
     #guides(fill = guide_legend(override.aes = list(size = 5))) +
-    labs(x="Enthalpy (eV)", y = "Number of Structures") +
+    labs(x="Enthalpy (eV)", y = "Number of Structures")
 
-ggsave("randomgen-plot.pdf", dpi=300, width = 20, height = 15, units = "cm")
-ggsave("randomgen-plot.eps", dpi=300, width = 20, height = 15, units = "cm")
-ggsave("randomgen-plot.png", dpi=300, width = 20, height = 15, units = "cm")
+if (args[1] == "tio2") {
+    randomgen <- randomgen +
+        scale_fill_manual(values=c("Rutile" = "#FF9600", "Other" = "#005199"),
+            breaks=c("Rutile")
+        ) +
+        scale_y_continuous(limits = c(0,NA), expand = c(0, 0)) +
+        scale_x_continuous(limits = c(emin-1,-613.0), expand = c(0, 0)) +
+        coord_flip()
+} else if (args[1] == "srtio3") {
+    randomgen <- randomgen +
+        scale_fill_manual(values=c("Perovskite" = "#FF9600", "Other" = "#005199"),
+            breaks=c("Perovskite")
+        ) +
+        scale_y_continuous(limits = c(0,NA), expand = c(0, 0)) +
+        scale_x_continuous(limits = c(emin-1,-1475.0), expand = c(0, 0)) +
+        coord_flip()
+}
+
+ggsave("randomgen-plot.pdf", dpi=300, width = 12, height = 10, units = "cm")
+ggsave("randomgen-plot.eps", dpi=300, width = 12, height = 10, units = "cm")
+ggsave("randomgen-plot.png", dpi=300, width = 12, height = 10, units = "cm")
+
+cat(paste("Number of Min. Structures =", genmin), file = "summary", sep = "\n")
+cat(paste("Total Structures =", total), file = "summary", sep = "\n", append = TRUE)
+cat(paste("Percent Min. =", genmin/total*100.0,"%"), file = "summary", sep="\n", append = TRUE)

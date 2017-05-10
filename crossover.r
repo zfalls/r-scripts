@@ -94,8 +94,8 @@ for (frame in 0:totalFrames) {
     }
 
     newFrame <- totalFrames*2 - frame
-    rgl.snapshot(filename=paste("crossover/crossover-",sprintf("%03d", frame), ".png", sep=""))
-#    system(paste("convert -crop 400x400+200+175 +repage crossover/crossover-",sprintf("%03d", frame), ".png crossover/crossover-",sprintf("%03d", frame), ".png", sep=""))
+    rgl.postscript(filename=paste("crossover/crossover-",sprintf("%03d",frame), ".pdf", sep=""), fmt="pdf")
+    system(paste("convert -sharpen 0x1.0 -quality 100 crossover/crossover-",sprintf("%03d", frame), ".pdf crossover/crossover-",sprintf("%03d", frame), ".png", sep=""))
     if (frame != newFrame)
         file.copy(paste("crossover/crossover-",sprintf("%03d", frame),".png", sep=""), paste("crossover/crossover-", sprintf("%03d", newFrame), ".png", sep=""), overwrite = TRUE)
     clear3d()

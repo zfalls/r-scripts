@@ -38,8 +38,9 @@ for (frame in 1:totalFrames) {
     for (i in 1:6)
         lines3d(t(c3d_trans$vb)[c3d$ib[,i],])
     newFrame <- totalFrames*2 - frame
-    rgl.snapshot(filename=paste("strain/strain-",sprintf("%03d", frame), ".png", sep=""))
-    system(paste("convert -crop 400x400+75+285 +repage strain/strain-",sprintf("%03d", frame), ".png strain/strain-",sprintf("%03d", frame), ".png", sep=""))
+    rgl.postscript(filename=paste("strain/strain-",sprintf("%03d",frame), ".pdf", sep=""), fmt="pdf")
+    system(paste("convert -crop 400x400+75+285 +repage -sharpen 0x1.0 -quality 100 strain/strain-",sprintf("%03d", frame), ".pdf strain/strain-",sprintf("%03d", frame), ".pdf", sep=""))
+    system(paste("convert -flatten -background white -sharpen 0x1.0 -quality 100 strain/strain-",sprintf("%03d", frame), ".pdf strain/strain-",sprintf("%03d", frame), ".png", sep=""))
     if (frame != newFrame)
         file.copy(paste("strain/strain-",sprintf("%03d", frame),".png", sep=""), paste("strain/strain-", sprintf("%03d", newFrame), ".png", sep=""), overwrite = TRUE)
     clear3d()
