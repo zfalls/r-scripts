@@ -35,21 +35,25 @@ for (frame in 0:totalFrames) {
                 c <- k*0.1
                 if (i %% 2 == 0 && j %% 2 == 0 && k %% 2 == 0) {
                     if (i > 2) {
-                        plot3d(a+frame*0.015, b+frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "blue", 
+                        #plot3d(a+frame*0.015, b+frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "blue", 
+                        plot3d(a+frame*0.015, b+frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "#005199", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
-                        plot3d(a+1, b+0.5, c, type = "s", radius = .05, col = "red", 
+                        #plot3d(a+1, b+0.5, c, type = "s", radius = .05, col = "red", 
+                        plot3d(a+1, b+0.5, c, type = "s", radius = .05, col = "#FF9600", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
                     }
                     if (i <= 2) {
-                        plot3d(a, b, c, type = "s", radius = .05, col = "blue", 
+                        #plot3d(a, b, c, type = "s", radius = .05, col = "blue", 
+                        plot3d(a, b, c, type = "s", radius = .05, col = "#005199", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
-                        plot3d(a+1-frame*0.015, b+0.5-frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "red", 
+                        #plot3d(a+1-frame*0.015, b+0.5-frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "red", 
+                        plot3d(a+1-frame*0.015, b+0.5-frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "#FF9600", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
@@ -57,21 +61,25 @@ for (frame in 0:totalFrames) {
                 }
                 if (i %% 2 != 0 && j %% 2 != 0 && k %% 2 != 0) {
                     if (i > 2) {
-                        plot3d(a+frame*0.015, b+frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "red", 
+                        #plot3d(a+frame*0.015, b+frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "red", 
+                        plot3d(a+frame*0.015, b+frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "#FF9600", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
-                        plot3d(a+1, b+0.5, c, type = "s", radius = .05, col = "blue", 
+                        #plot3d(a+1, b+0.5, c, type = "s", radius = .05, col = "blue", 
+                        plot3d(a+1, b+0.5, c, type = "s", radius = .05, col = "#005199", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
                     }
                     if (i <= 2) {
-                        plot3d(a, b, c, type = "s", radius = .05, col = "red", 
+                        #plot3d(a, b, c, type = "s", radius = .05, col = "red", 
+                        plot3d(a, b, c, type = "s", radius = .05, col = "#FF9600", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
-                        plot3d(a+1-frame*0.015, b+0.5-frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "blue", 
+                        #plot3d(a+1-frame*0.015, b+0.5-frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "blue", 
+                        plot3d(a+1-frame*0.015, b+0.5-frame*0.0125, c-frame*0.05, type = "s", radius = .05, col = "#005199", 
                             add = TRUE, 
                             xlab="", ylab="", zlab="", 
                             axes = FALSE)
@@ -96,8 +104,10 @@ for (frame in 0:totalFrames) {
     newFrame <- totalFrames*2 - frame
     rgl.postscript(filename=paste("crossover/crossover-",sprintf("%03d",frame), ".pdf", sep=""), fmt="pdf")
     system(paste("convert -sharpen 0x1.0 -quality 100 crossover/crossover-",sprintf("%03d", frame), ".pdf crossover/crossover-",sprintf("%03d", frame), ".png", sep=""))
-    if (frame != newFrame)
+    if (frame != newFrame) {
         file.copy(paste("crossover/crossover-",sprintf("%03d", frame),".png", sep=""), paste("crossover/crossover-", sprintf("%03d", newFrame), ".png", sep=""), overwrite = TRUE)
+        file.copy(paste("crossover/crossover-",sprintf("%03d", frame),".pdf", sep=""), paste("crossover/crossover-", sprintf("%03d", newFrame), ".pdf", sep=""), overwrite = TRUE)
+    }
     clear3d()
 }
-system(paste("convert -delay 1 crossover/*.png crossover/crossover.gif", sep=""))
+system(paste("convert -dispose previous -delay 1 -quality 100 crossover/*.pdf crossover/crossover.gif", sep=""))

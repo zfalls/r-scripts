@@ -20,7 +20,7 @@ if (args[1] == "tio2") {
 } else if (args[1] == "srtio3") {
     energy <- -150.03120626
     emin <- energy * 10.0
-    etol <- 1 
+    etol <- 1.0 
 }
 
 enthalpy <- c()
@@ -35,7 +35,7 @@ for (file in files) {
     enthalpy <- c(enthalpy, run$enthalpy)
     for (i in 1:nrow(run)) {
         total <- total + 1
-        if (abs(emin - run$enthalpy[i]) < etol) {
+        if (abs(emin - run$enthalpy[i]) <= etol) {
             genmin <- genmin + 1
         }
     }
@@ -46,7 +46,7 @@ gen <- data.frame(enthalpy)
 if (args[1] == "tio2") {
     randomgen <- ggplot(gen, aes(x=enthalpy)) +
         geom_histogram(binwidth=0.1, 
-            data=subset(gen, enthalpy<=emin), 
+            data=subset(gen, abs(emin - enthalpy)<=etol), 
             aes(fill="Rutile"), 
             #size = 0.2, 
             #color = "black"
@@ -54,7 +54,7 @@ if (args[1] == "tio2") {
 } else if (args[1] == "srtio3") {
     randomgen <- ggplot(gen, aes(x=enthalpy)) +
         geom_histogram(binwidth=0.1, 
-            data=subset(gen, (emin-enthalpy)<=etol), 
+            data=subset(gen, abs(emin - enthalpy)<=etol), 
             aes(fill="Perovskite"), 
             #size = 0.2, 
             #color = "black"
@@ -63,7 +63,7 @@ if (args[1] == "tio2") {
 
 randomgen <- randomgen +
     geom_histogram(binwidth=0.1, 
-        data=subset(gen, enthalpy>emin), 
+        data=subset(gen, abs(emin - enthalpy)>etol), 
         aes(fill="Other"), 
         #size = 0.2, 
         #color = "black"

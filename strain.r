@@ -21,17 +21,17 @@ for (frame in 1:totalFrames) {
     A <- matrix(c(0.15,0,0,0,0.15,0,0,0,0.15),3,3)
     c3d <- transform3d(c3d, A)
     
-    a <- 1 + frame*0.01
-    b <- frame*0.01
-    c <- frame*0.01
+    a <- 1 + frame*0.005
+    b <- frame*0.005
+    c <- frame*0.005
     
-    d <- frame*0.01
-    e <- 1 + frame*0.01
-    f <- frame*0.01
+    d <- frame*0.005
+    e <- 1 + frame*0.005
+    f <- frame*0.005
     
-    g <- frame*0.01
-    h <- frame*0.01
-    i <- 1 + frame*0.01
+    g <- frame*0.005
+    h <- frame*0.005
+    i <- 1 + frame*0.005
     
     A <- matrix(c(a,b,c,d,e,f,g,h,i),3,3)
     c3d_trans <- transform3d(c3d, A)
@@ -40,9 +40,9 @@ for (frame in 1:totalFrames) {
     newFrame <- totalFrames*2 - frame
     rgl.postscript(filename=paste("strain/strain-",sprintf("%03d",frame), ".pdf", sep=""), fmt="pdf")
     system(paste("convert -crop 400x400+75+285 +repage -sharpen 0x1.0 -quality 100 strain/strain-",sprintf("%03d", frame), ".pdf strain/strain-",sprintf("%03d", frame), ".pdf", sep=""))
-    system(paste("convert -flatten -background white -sharpen 0x1.0 -quality 100 strain/strain-",sprintf("%03d", frame), ".pdf strain/strain-",sprintf("%03d", frame), ".png", sep=""))
+    system(paste("convert -sharpen 0x1.0 -quality 100 strain/strain-",sprintf("%03d", frame), ".pdf strain/strain-",sprintf("%03d", frame), ".png", sep=""))
     if (frame != newFrame)
         file.copy(paste("strain/strain-",sprintf("%03d", frame),".png", sep=""), paste("strain/strain-", sprintf("%03d", newFrame), ".png", sep=""), overwrite = TRUE)
     clear3d()
 }
-system(paste("convert -delay 1 strain/*.png strain/strain.gif", sep=""))
+system(paste("convert -dispose previous -delay 1 -quality 100 strain/*.png strain/strain.gif", sep=""))

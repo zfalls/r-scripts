@@ -6,18 +6,19 @@ library(ggtern)
 require(ggplot2)
 
 #Load the data
-df <- read.table("./rplot.dat")
-colnames(df) = c("x","y","Value")
-dft <- data.frame(Value=df$Value)
-df$Value <- NULL
-df$x <- df$x / 100
-df$y <- df$y / 100
-crd = coord_tern()
-fwd = xy2tlr(df,crd)
-fwd$Value <- dft$Value
-colnames(fwd) = c("Li","H","F","Value")
+df <- read.table("./tern-tlr.dat")
+colnames(df) = c("P","H","B","Value")
+#dft <- data.frame(Value=df$Value)
+#df$Value <- NULL
+#df$x <- df$x / 100
+#df$y <- df$y / 100
+#crd = coord_tern()
+#fwd = xy2tlr(df,crd)
+#fwd$Value <- dft$Value
+#colnames(fwd) = c("Li","H","F","Value")
+#write.table(fwd, file = "tern-tlr.dat", append = FALSE, quote = FALSE, sep = "\t", row.names=FALSE)
 
-plot <- ggtern(data = fwd,aes(x=Li,y=H,z=F,value=Value)) + 
+plot <- ggtern(data = df,aes(x=P,y=H,z=B,value=Value)) + 
     stat_interpolate_tern(
         n=400,
         bins=1000,
@@ -33,9 +34,9 @@ plot <- ggtern(data = fwd,aes(x=Li,y=H,z=F,value=Value)) +
         color='black',
         base='identity',
     ) +
-    scale_T_continuous(breaks=.5,labels="HF") +
-    scale_L_continuous(breaks=.5,labels="LiH") +
-    scale_R_continuous(breaks=.5,labels="LiF") +
+    scale_T_continuous(breaks=.5,labels="BH") +
+    scale_L_continuous(breaks=.5,labels="PH") +
+    scale_R_continuous(breaks=.5,labels="PB") +
     theme_bw() +
     theme_showarrows() +
     theme_gridsonbottom() +

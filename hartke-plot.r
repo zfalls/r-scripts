@@ -201,7 +201,7 @@ f_est <- function(x) {
 }
 
 guess <- 500
-diff <- 1e-5
+diff <- 1e-3
 cutoff <- 0.01
 x <- guess
 val <- f_est(x)
@@ -223,9 +223,9 @@ est <- x
 
 firstdone_val <- 10000
 for (i in 1:length(firstdone)) {
-#    if (firstdone[i] == 0) {
-#        firstdone[i] = est
-#    }
+    if (firstdone[i] == 0) {
+        firstdone[i] = est
+    }
     if (firstdone[i] < firstdone_val && firstdone[i] != 0) {
         firstdone_val <- firstdone[i]
     }    
