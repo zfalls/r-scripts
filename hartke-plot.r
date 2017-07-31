@@ -223,17 +223,21 @@ est <- x
 
 firstdone_val <- 10000
 for (i in 1:length(firstdone)) {
-    if (firstdone[i] == 0) {
-        firstdone[i] = est
-    }
     if (firstdone[i] < firstdone_val && firstdone[i] != 0) {
         firstdone_val <- firstdone[i]
     }    
 }
 
-est_done <- mean(firstdone)
-std_dev <- sd(firstdone)
-err_mean <- std_dev / sqrt(std_dev)
+firstdone_corrected <- c()
+for (i in 1:length(firstdone)) {
+    if (firstdone[i] != 0) {
+        firstdone_corrected[length(firstdone_corrected) + 1] <- firstdone[i]
+    } 
+}
+
+est_done <- mean(firstdone_corrected)
+std_dev <- sd(firstdone_corrected)
+err_mean <- std_dev / sqrt(length(firstdone_corrected))
 
 #Plot the Hartke Plot
 hartkeplot <- ggplot(hartke) +
